@@ -1,18 +1,10 @@
 [
   {
-    "label": "Run Debug",
+    "label": "Run",
     "command": "cargo run --features bevy/dynamic_linking"
   },
   {
-    "label": "Run Release",
-    "command": "cargo run --features bevy/dynamic_linking --release"
-  },
-  {
-    "label": "Build Debug",
-    "command": "cargo build"
-  },
-  {
-    "label": "Build Release",
+    "label": "Build",
     "command": "cargo build --release"
   }
 ]
