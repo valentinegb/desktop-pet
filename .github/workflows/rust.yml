@@ -29,13 +29,16 @@ jobs:
           ~/.cargo/git/db/
           target/
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+    - name: Install libasound2-dev
+      if: runner.os == 'Linux'
+      run: sudo apt install libasound2-dev
     - name: Build
       run: cargo build --verbose --release
     - name: Run tests
       run: cargo test --verbose 
     - uses: actions/upload-artifact@v4
       with:
-        name: desktop-pet_${{ matrix.os }}
+        name: desktop-pet_${{ runner.os }}
         path: |
           target/release/desktop-pet
           target/release/desktop-pet.exe
