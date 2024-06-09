@@ -29,9 +29,9 @@ jobs:
           ~/.cargo/git/db/
           target/
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-    - name: Install libasound2-dev
+    - name: Install Linux dependencies
       if: runner.os == 'Linux'
-      run: sudo apt install libasound2-dev
+      run: sudo apt install libasound2-dev libudev-dev
     - name: Build
       run: cargo build --verbose --release
     - name: Run tests
