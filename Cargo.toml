@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 bevy = "0.13.2"
+winit = { version = "0.29", default-features = false }
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]

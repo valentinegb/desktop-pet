@@ -7,7 +7,9 @@ use animated_sprite_sheet::{
 use bevy::{
     prelude::*,
     window::{CompositeAlphaMode, PrimaryWindow, WindowLevel},
+    winit::WinitWindows,
 };
+use winit::platform::macos::WindowExtMacOS;
 
 #[derive(Component)]
 struct Pet;
@@ -70,10 +72,14 @@ fn setup_camera(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
 }
 
-fn setup_window(mut query: Query<&mut Window>) {
-    for mut window in &mut query {
+fn setup_window(mut query: Query<(Entity, &mut Window)>, winit_windows: NonSend<WinitWindows>) {
+    for (entity, mut window) in &mut query {
         window.set_maximized(true);
         window.cursor.hit_test = false;
+
+        if let Some(winit_window) = winit_windows.get_window(entity) {
+            winit_window.set_has_shadow(false);
+        }
     }
 }
 
