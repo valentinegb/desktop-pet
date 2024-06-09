@@ -1,5 +1,9 @@
-use std::ops::RangeInclusive;
+mod animated_sprite_sheet;
+mod pet;
 
+use animated_sprite_sheet::{
+    animate_sprite_sheet_system, AnimatedSpriteSheetBundle, AnimationFrames, AnimationTimer,
+};
 use bevy::{
     prelude::*,
     window::{CompositeAlphaMode, PrimaryWindow, WindowLevel},
@@ -7,9 +11,6 @@ use bevy::{
 
 #[derive(Component)]
 struct Pet;
-
-#[derive(Component, Deref, DerefMut)]
-struct AnimationTimer(Timer);
 
 #[derive(Component)]
 enum CatAnimation {
@@ -26,18 +27,18 @@ enum CatAnimation {
 }
 
 impl CatAnimation {
-    fn indices(&self) -> RangeInclusive<usize> {
+    fn frames(&self) -> AnimationFrames {
         match self {
-            Self::Idle1 => 0..=3,
-            Self::Idle2 => 8..=11,
-            Self::Clean1 => 16..=19,
-            Self::Clean2 => 24..=27,
-            Self::Run1 => 32..=39,
-            Self::Run2 => 40..=47,
-            Self::Sleep => 48..=51,
-            Self::Walk => 56..=61,
-            Self::Leap => 64..=70,
-            Self::Stretch => 72..=79,
+            Self::Idle1 => AnimationFrames(0..=3),
+            Self::Idle2 => AnimationFrames(8..=11),
+            Self::Clean1 => AnimationFrames(16..=19),
+            Self::Clean2 => AnimationFrames(24..=27),
+            Self::Run1 => AnimationFrames(32..=39),
+            Self::Run2 => AnimationFrames(40..=47),
+            Self::Sleep => AnimationFrames(48..=51),
+            Self::Walk => AnimationFrames(56..=61),
+            Self::Leap => AnimationFrames(64..=70),
+            Self::Stretch => AnimationFrames(72..=79),
         }
     }
 }
@@ -61,7 +62,7 @@ fn main() {
         )
         .insert_resource(ClearColor(Color::NONE))
         .add_systems(Startup, (setup_camera, setup_window, setup_pet))
-        .add_systems(Update, (animate_sprite, sit_at_bottom))
+        .add_systems(Update, (animate_sprite_sheet_system, sit_at_bottom_system))
         .run();
 }
 
@@ -93,38 +94,23 @@ fn setup_pet(
 
     commands.spawn((
         Pet,
-        SpriteSheetBundle {
-            texture,
-            atlas: TextureAtlas {
-                layout,
-                index: *animation.indices().start(),
+        AnimatedSpriteSheetBundle {
+            sprite_sheet: SpriteSheetBundle {
+                texture,
+                atlas: TextureAtlas {
+                    layout,
+                    index: *animation.frames().0.start(),
+                },
+                transform: Transform::from_scale(Vec3::splat(6.0)),
+                ..default()
             },
-            transform: Transform::from_scale(Vec3::splat(6.0)),
-            ..default()
+            frames: animation.frames(),
+            timer: AnimationTimer(Timer::from_seconds(1.0 / 5.0, TimerMode::Repeating)),
         },
-        animation,
-        AnimationTimer(Timer::from_seconds(1.0 / 5.0, TimerMode::Repeating)),
     ));
 }
 
-fn animate_sprite(
-    time: Res<Time>,
-    mut query: Query<(&CatAnimation, &mut AnimationTimer, &mut TextureAtlas)>,
-) {
-    for (animation, mut timer, mut atlas) in &mut query {
-        timer.tick(time.delta());
-
-        if timer.just_finished() {
-            atlas.index = if atlas.index == *animation.indices().end() {
-                *animation.indices().start()
-            } else {
-                atlas.index + 1
-            }
-        }
-    }
-}
-
-fn sit_at_bottom(
+fn sit_at_bottom_system(
     primary_window_query: Query<&Window, With<PrimaryWindow>>,
     mut pet_query: Query<(&mut Transform, &TextureAtlas), With<Pet>>,
     texture_atlas_layouts: Res<Assets<TextureAtlasLayout>>,
