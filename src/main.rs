@@ -9,6 +9,7 @@ use bevy::{
     window::{CompositeAlphaMode, PrimaryWindow, WindowLevel},
     winit::WinitWindows,
 };
+#[cfg(target_os = "macos")]
 use winit::platform::macos::WindowExtMacOS;
 
 #[derive(Component)]
@@ -51,6 +52,7 @@ fn main() {
             DefaultPlugins
                 .set(WindowPlugin {
                     primary_window: Some(Window {
+                        #[cfg(target_os = "macos")]
                         composite_alpha_mode: CompositeAlphaMode::PostMultiplied,
                         resizable: false,
                         decorations: false,
@@ -72,6 +74,7 @@ fn setup_camera(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
 }
 
+#[cfg(target_os = "macos")]
 fn setup_window(mut query: Query<(Entity, &mut Window)>, winit_windows: NonSend<WinitWindows>) {
     for (entity, mut window) in &mut query {
         window.set_maximized(true);
@@ -80,6 +83,14 @@ fn setup_window(mut query: Query<(Entity, &mut Window)>, winit_windows: NonSend<
         if let Some(winit_window) = winit_windows.get_window(entity) {
             winit_window.set_has_shadow(false);
         }
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn setup_window(mut query: Query<(&mut Window)>) {
+    for mut window in &mut query {
+        window.set_maximized(true);
+        window.cursor.hit_test = false;
     }
 }
 
