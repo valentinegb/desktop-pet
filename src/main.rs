@@ -4,10 +4,13 @@ mod pet;
 use animated_sprite_sheet::{
     animate_sprite_sheet_system, AnimatedSpriteSheetBundle, AnimationFrames, AnimationTimer,
 };
+#[cfg(target_os = "macos")]
+use bevy::window::CompositeAlphaMode;
+#[cfg(target_os = "macos")]
+use bevy::winit::WinitWindows;
 use bevy::{
     prelude::*,
-    window::{CompositeAlphaMode, PrimaryWindow, WindowLevel},
-    winit::WinitWindows,
+    window::{PrimaryWindow, WindowLevel},
 };
 #[cfg(target_os = "macos")]
 use winit::platform::macos::WindowExtMacOS;
@@ -87,7 +90,7 @@ fn setup_window(mut query: Query<(Entity, &mut Window)>, winit_windows: NonSend<
 }
 
 #[cfg(not(target_os = "macos"))]
-fn setup_window(mut query: Query<(&mut Window)>) {
+fn setup_window(mut query: Query<&mut Window>) {
     for mut window in &mut query {
         window.set_maximized(true);
         window.cursor.hit_test = false;
